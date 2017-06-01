@@ -1,0 +1,211 @@
+; Multireference alignment and classification
+; 
+; Sub-procedure required: 
+; 		alqmd.mra
+; 		center.mra
+; 		combat.mra
+;
+; 05/08/2013 - Using the particle selection file instead of making a new 
+;              stack.  The selection file name is 'selpar'. 
+; 10/20/2016 - Replace 'AP REF' with 'AP SH'. 
+; 
+; Po-Lin Chiu  Last updated: 03/17/2017
+;
+
+
+; Basic parameters:
+x21 = OUT_RAD
+x26 = IN_RAD
+
+; classify by factors or by the raw data ?
+; x27=1   classification on raw data
+; x27=2   classification on factors, their number is given by x23
+; 06 ===> classify on the raw data, or based on factor analysis
+;         (use raw data for a first pass through)
+x27=RAW
+
+; Number of factors in CA S
+; 07 ===> if x27=2, how many factors should we examine
+x23=FACTORS
+
+; Number of groups
+; 08 ===> how many output groups would you like ?
+[grp_number]=GROUP
+
+; Number of iterations of the multireference alignment
+x25=ITER
+
+
+
+; Start ====================
+[zero] = 0.0
+
+MD
+  SET MP
+  0
+
+; Retrieve information from the file header.
+FI [prtc_numb], [im_size]
+  INPUT@
+  26, 12
+
+; If the particle selection file does not exist, then use the whole set of particles. 
+IQ FI [isSelectionFile]
+  selpar
+
+IF ([isSelectionFile].EQ.[zero]) THEN
+	DO LB35 X35 = 1, [prtc_numb]
+		SD X35, X35
+		  selpar
+	LB35
+	
+	SD E
+	  selpar
+ENDIF
+
+@center([prtc_numb])
+  INPUT@*****
+  centered@*****
+  shift001
+
+DO lb18 x92=1, [prtc_numb]
+    sd x92, [zero], [zero], [zero], [zero]
+      trns001
+lb18
+sd e
+  trns001
+
+; Create a mask for PCA
+MO
+  _9
+  [im_size], [im_size]
+  c
+  x21
+
+; If classification on raw data find number of points under the mask. 
+if(x27.eq.1) then
+    fs x81,x82,x83
+      _9
+    x23 = x83 * [im_size] * [im_size]
+    x23=INT(x23)
+endif
+
+DO lb21 x31=1, [prtc_numb]
+    cp
+      centered@{*****x31}
+      data001@{*****x31}
+lb21
+
+CP
+  data001@
+  data002@
+
+
+; Iterate mutlireference alignment
+do lb8 x81=1,x25
+    x82=x81+1
+    ; Create SEQ file for PCA
+    ca s
+      data002@*****
+      selpar
+      _9
+      x23
+      p
+      pca{**x81}
+
+
+    ; Create subdirectory for the classification results and the averages. 
+    VM
+      echo "if(-d cluster{**x81}) rm -r cluster{**x81}"|csh
+    VM
+      mkdir cluster{**x81}
+
+    ; Classification by k-means method (CL KM)
+    cl km
+      pca{**x81}_SEQ
+      [grp_number]
+      1-x23
+      (0)
+      (1547)
+      cluster{**x81}/sel***
+      cluster{**x81}/cluster
+
+    ; Make averages for each class
+    do lb1 x71=1, [grp_number]
+        AS R
+          data002@*****
+          cluster{**x81}/sel{***x71}
+          a
+          cluster{**x81}/avg{***x71}
+          cluster{**x81}/var{***x71}
+    lb1
+
+    ; Put averages in a decent orientation
+    @center([grp_number])
+      cluster{**x81}/avg***
+      cluster{**x81}/cvg***
+      cluster{**x81}/centar
+
+    ; Rotational alignment against the references
+    AP RA
+      cluster{**x81}/cvg***
+      1-[grp_number]
+      x26, x21
+      (0)
+      F
+      cluster{**x81}/haldoc
+
+    do lb41 x90=1,[grp_number]
+        ud ic,x90,x41,x42,x43,x44
+        cluster{**x81}/haldoc
+        
+        rt sq
+          cluster{**x81}/cvg{***x41}
+          cluster{**x81}/rvg{***x41}
+          x42
+          (0, 0)
+    lb41
+    ud ice
+      cluster{**x81}/haldoc
+
+    ; Do the multireference alignment
+    ; make the reference Eulerian angle file
+    do lb2 x99=1, [grp_number]
+        sd x99, [zero], [zero], [zero]
+          refangles
+    lb2
+    sd e
+
+
+    ; then do mult-reference alignment, rotation & shift
+    AP SH
+      cluster{**x81}/rvg***
+      1-[grp_number]
+      (5, 1)
+      (x26, x21, 1)
+      refangles
+      data002@*****
+      selpar
+      *
+      (0, 0)
+      Y, Y
+      cluster{**x81}/apsh001
+
+    ; Sorting the output angle document
+    DOC SORT
+      cluster{**x81}/apsh001
+      cluster{**x81}/apshsort001
+      (0)
+      Y Y;
+
+    ; Center 2D images using cross-correlation.
+    ; Cross-correlate each projection with the reference images
+    @alqr
+      cluster{**x81}/apshsort001
+      data001@*****
+      data002@*****
+      trns{***x81}
+      trns{***x82}
+LB8
+
+EN
