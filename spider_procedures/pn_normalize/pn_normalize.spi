@@ -1,0 +1,68 @@
+; Normalize the particles with the particles windowed. 
+; 
+; Po-Lin Chiu       2017.05.08
+;
+
+FR L
+[micg_root]MICG_ROOT
+FR L
+[noise_root]nse_
+FR L
+[prtc_root]PRTC_ROOT
+
+[box_size] = BOX_SIZE
+[out_radius] = OUT_RADIUS
+
+
+; Make a noise file from the micrograph ==========
+; Normalize based upon the stat from each micrograph ==========
+[start] = 1
+
+BL
+  _6
+  [box_size], [box_size]
+  n
+  0.0
+
+X25 = [box_size] / 2
+IF (X25.GT.INT(X25)) X25=([box_size]+1)/2
+
+MA
+  _6
+  _3
+  [out_radius]
+  D
+  E
+  1.0
+  X25, X25
+
+DO LB21 X21 = 1, 9999
+    IQ FI X22
+      [micg_root]{****X21}
+    
+    IF (X22.EQ.1.0) THEN
+        @make_noise
+          [micg_root]{****X21}
+          [noise_root]{****X21}
+        
+        FI [prtc_number]
+          [prtc_root]{****X21}
+          (26)
+          
+        DO LB23 X23 = 1, [prtc_number]
+            RA
+              [prtc_root]{****X21}@{******X23}
+              _1
+            
+            CE FIT
+              [noise_root]{****X21}
+              _1
+              _3
+              nprtc{****X21}@{******X23}
+        LB23
+        
+        [start] = [start] + 1
+    ENDIF  
+LB21
+
+EN
