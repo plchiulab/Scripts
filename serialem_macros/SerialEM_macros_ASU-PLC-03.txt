@@ -1,0 +1,383 @@
+
+
+Macro	21
+MacroName p_snglprtc
+	############################################################################
+    #   Po-Lin Chiu         2016.01.16 - created.
+    #                       2017.06.03 - updated. Use group of points. 
+    #
+	echo === Macro: p_snglprtc ===
+
+    defocus_start = -1.8
+    defocus_end = -4.5
+    defocus_step = 0.1
+    
+	# Realign to the Navigator item that this macro is being run on and then zero 
+    # the IS. 
+	realignToNavItem 1
+    copy A P
+	callFunction stnd::alignToP
+
+	# Find index number for current to acquire
+	reportNavItem
+	echo >>>>>> Acquiring the Navigator Item of $navAcqIndex
+    
+    reportGroupStatus
+    if (($reportedValue1 == 1)  OR ($reportedValue1 == 0))
+        callFunction stnd::updateZByView
+        updateGroupZ
+
+        # Align to the acquired image on the map again.
+        # (after adjusting z height, the stage may not be at the same xy.)
+        callFunction stnd::alignToP
+
+        # Focusing
+        autofocus
+        autofocus
+        
+        # Set defocus
+        callFunction stnd::cycleTargetDefocus $defocus_start $defocus_end $defocus_step        
+    else
+        callFunction stnd::cycleTargetDefocus $defocus_start $defocus_end $defocus_step
+    endif
+
+    # Record the image data
+	record
+	############################################################################
+EndMacro
+Macro	22
+MacroName zeroIS
+    ############################################################################
+    # Move the stage to align to the image reference. 
+    #
+    
+    shot = V
+    
+    copy A P
+    resetImageShift
+    
+    loop 2
+        $shot
+        alignTo P
+        resetImageShift
+    endLoop
+EndMacro
+Macro	23
+MacroName p_tiltpair
+	############################################################################
+	echo === Macro: p_tiltpair ===
+
+    defocus_set = -1.5
+    tilt_angle = -45
+
+    copy A B
+    view
+    alignTo B
+
+    # Set the defocus
+    setTargetDefocus $defocus_set
+    
+    # Image the tilted 
+    resetClock
+    autofocus
+    view
+    walkUpTo $tilt_angle
+    delay 5s
+    autofocus
+    record
+    save
+    
+    # Image the untilted
+    walkUpTo 0
+    delay 5
+    autofocus
+    record
+    save
+    
+    resetImageShift
+        
+    # Recording time
+    reportClock
+    echo Acquiring $navAcqIndex takes $reportedValue1 seconds. 
+	############################################################################
+EndMacro
+Macro   24
+MacroName focal_var
+	############################################################################
+	# A macro that collects the single-particle data with varied focus in one
+    # shot
+    
+
+EndMacro
+Macro	25
+MacroName stnd
+	############################################################################
+	# A macro that holds the common functions
+
+	####################################### cycleTargetDefocus
+	# Defocus step.  
+	Function cycleTargetDefocus 3 0
+        defocus_start = $argVal1
+        defocus_end = $argVal2
+        step = $argVal3
+        delta = -1 * $step
+        
+        reportTargetDefocus
+        target_defocus = $reportedValue1
+
+        if ($target_defocus > $defocus_start) OR ($target_defocus < $defocus_end)
+            setTargetDefocus $defocus_start
+        else 
+            incTargetDefocus $delta
+        endif
+        
+        reportTargetDefocus
+        echo >>>>>> target defocus is $reportedValue1 um ...
+	EndFunction
+
+	####################################### drift
+	# Measure drift rate.  Do nothing if the drift rate is slow. 
+    # Isolated if K2 is applied. 
+	Function drift 0 0
+	    shot = F                        # the area for measuring drift
+	    interval = 14                   # time interval
+	    times = 10                      # times of measurements
+	    crit = 2.0                      # threshold 
+
+	    resetClock
+	    period = $interval + 1 
+
+	    # First shot in Focus area. 
+	    $shot
+	    delay $interval
+
+	    loop $times index
+	        $shot
+	        alignTo B
+	        reportAlignShift            # (im_x, im_y, spec_x, spec_y)
+	        clearAlignment              # clear image alignment shift in 
+                                        # buffer A
+	        dx = $reportedValue3
+	        dy = $reportedValue4
+	        distance = sqrt $dx * $dx + $dy * $dy   # in nanometers
+	        rate = $distance / $period * 10
+	        reportClock	                # the time elapsed
+	        echo >>>>>> drift rate = $rate Angstroms/sec
+   
+	        if ($rate < $crit)
+	            echo >>>>>> Drift is low enough after shot $index.      
+	            break
+	        elseif ($index < $times)
+	            delay $interval
+	        else
+	            echo >>>>>> Drift never got below $crit: Skipping ...
+	            exit   
+	        endif
+	    endLoop
+	EndFunction
+
+
+	####################################### updateZByView
+	# Normalize the objective lenses first and then focus in the View mode.  
+	# Restore the focus in the end. 
+	#
+	Function updateZByView 0 0
+	    # For defocus offset of the View in Low Dose mode
+	    goToLowDoseArea V
+        saveFocus
+        
+	    # Set object lens (2: objective lenses).
+	    setEucentricFocus
+
+	    # Adjust Z.
+	    loop 2
+	        autofocus -1 1          # measure defocus of the View, focus in the 
+                                    # View area
+	        reportAutofocus         # (measured_defocus)
+	        z = -1 * $reportedValue1
+	        moveStage 0 0 $z
+	        echo >>>>>> Z has moved --> $z um. 
+	    endLoop
+
+	    # Restore the defocus originally set in V.
+        restoreFocus
+    EndFunction
+
+	####################################### updateZByG
+	# Normalize the objective lenses using beam tilting (autofocus).   
+	#
+	Function updateZByG 0 0
+        # Make sure it is in Focus mode. 
+        reportLowDose
+        if $reportedValue1 == 1 AND $reportedValue2 == 0
+            goToLowDoseArea F
+        endif
+        
+	    # Set object lens (2: objective lenses).
+	    setEucentricFocus
+
+	    # Adjust Z.
+	    loop 2
+	        autofocus -1 1          # measure defocus, focus with View area??
+	        reportAutofocus         # (measured_defocus)
+	        z = -1 * $reportedValue1
+	        moveStage 0 0 $z
+	        echo >>>>>> Z has moved --> $z um. 
+	    endLoop
+    EndFunction
+
+
+	####################################### cropImageAToP
+	# Window the central part of the image A into image buffer P.  
+	# 
+    Function cropImageAToP 0 0
+        imageProperties P
+        XP = $reportedValue1
+        YP = $reportedValue2
+
+        imageProperties A
+        XA = $reportedValue1
+        YA = $reportedValue2
+
+        Xdiff = $XA - $XP
+        Ydiff = $YA - $YP
+
+        half_Xdiff = $Xdiff / 2
+        half_Ydiff = $Ydiff / 2
+        X0 = $half_Xdiff 
+        X1 = $XP + $half_Xdiff
+        Y0 = $half_Ydiff 
+        Y1 = $YP + $half_Ydiff
+
+        cropImage A $X0 $X1 $Y0 $Y1
+    EndFunction
+    
+    
+	####################################### alignToP
+	# 
+    Function alignToP 0 0
+        # Figure out whether the low dose mode is on or off
+        reportLowDose 
+        if $reportedValue1 == 1
+            imageLowDoseSet P
+            S = $reportedValue1
+        elseif $reportedValue1 == 0
+            ImageProperties P
+            S = $reportedValue6
+        endif
+
+        # Obtain the image parameters of buffer P
+        imageProperties P
+        xp = $reportedValue1
+        yp = $reportedValue2
+        binning = $reportedValue3
+        exposure = $reportedValue4
+
+        # Figure out from which set the image was taken
+        # (0=view, 1=focus, 2=trial, 3=record, 4=preview)
+        if $S == 0
+            area = View
+        elseif $S == 1
+            area = Focus
+        elseif $S == 2 or $S == 5
+            area = Trial
+        elseif $S == 3
+            area = Record
+        elseif $S == 4
+            area = Preview
+        endif
+
+        # Set camera parameters
+        setExposure $S $exposure
+        setCenteredSize $S $binning $xp $yp
+
+        # Align
+        loop 2
+            $area
+            imageProperties A
+            xa = $reportedValue1
+            ya = $reportedValue2
+            if $xa > $xp or $ya > $yp
+                callFunction stnd::cropImageAToP
+            endif
+            alignTo P
+            resetImageShift 
+        endLoop 
+
+        # Restore the camera status
+        restoreCameraSet
+    EndFunction
+EndMacro
+Macro	24
+MacroName calibrate_beam_intensity
+    beam_intensity_tolerance = 0.1
+    minimum_intensity = 10
+    
+    reportSpotSize
+    spot_size = $reportedValue1
+    reportProbeMode
+    if ($reportedValue1 == 0)
+        probe_mode_text = nP
+    else
+        probe_mode_text = uP
+    endif
+    
+    reportPercentC2
+    save_percent_C2 = $reportedValue1
+    record
+    reportMeanCounts
+    new_intensity_for_mean = $reportedValue1
+    
+    loop 100
+        new_intensity_for_mean = ($new_intensity_for_mean * 0.57)
+        if ($new_intensity_for_mean < $minimum_intensity)
+            echo >>>>>> Ending at $new_intensity_for_mean counts. 
+            break
+        endif
+        reportPercentC2
+        preset_percent_C2 = $reportedValue1
+        setIntensityForMean $new_intensity_for_mean
+        reportPercentC2
+        if ($reportedValue1 == $preset_precent_C2)
+            echo >>>>>> Quiting at $new_intensity_for_mean counts. 
+            break
+        endif
+        record
+        reportMeanCounts
+        mean_rel_tar = $reportedValue1 / $new_intensity_for_mean
+        if ($mean_rel_tar > (1-$beam_intensity_tolerance)) and ($mean_rel_tar < (1+$beam_intensity_tolerance))
+            echo >>>>>> Calibration test OK. 
+        else
+            echo >>>>>> Calibration test failed. 
+        endif
+    endLoop
+    
+    setPercentC2 $save_percent_C2
+    record
+    centerBeamFromImage
+    
+    echo Done. 
+EndMacro
+Macro	25
+MacroName p_centerHole
+	############################################################################
+	# A macro that centers the hole
+    # Requires to have a hole image in the buffer P
+    #
+    
+    max_hole_shift = 100
+    
+    view
+    alignTo P
+    reportAlignShift
+    hole_shift = sqrt $reportedValue5 * $reportedValue5 + $reportedValue6 * $reportedValue6
+    
+    if $hole_shift > $max_hole_shift
+        resetImageShift
+        view
+        alignTo P
+        reportAlignShift
+        echo >>>>>> Hole shifts to $reportedValue5 $reportedValue6
+    endif
+EndMacro
+
