@@ -35,7 +35,6 @@ for i in $(seq ${start_number} ${end_number})
 do
     file_number=`printf "%04d" ${i}`
     tif_filename=`ls ${tif_file_root}* | grep "${tif_file_root}${file_number}"`
-    echo ${tif_filename}
     if [[ -f ${tif_filename} ]]; then
         # Unpack the image data
         tif2mrc ${tif_filename} ${mrc_file_root}${file_number}.mrc
