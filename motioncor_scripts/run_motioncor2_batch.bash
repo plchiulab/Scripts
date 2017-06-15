@@ -5,11 +5,11 @@
 #
 
 
-tif_file_root="../Hila_PS1/PS1/PS1_"
+tif_file_root="../tifstack/CF1F0_"
 mrc_file_root="cf1f0_"
 gain_reference="gain_reference.mrc"
-start_number=1
-end_number=500
+start_number=10
+end_number=100
 super_pixel_size=0.525
 frame_dose=1.451247
 
@@ -34,10 +34,11 @@ eof
 for i in $(seq ${start_number} ${end_number})
 do
     file_number=`printf "%04d" ${i}`
-    tif_filename=`ls ${tif_file_root}* | grep ${tif_file_root}${file_number}`
-    if [ -f ${tif_filename} ]; then
+    tif_filename=`ls ${tif_file_root}* | grep "${tif_file_root}${file_number}"`
+    echo ${tif_filename}
+    if [[ -f ${tif_filename} ]]; then
         # Unpack the image data
-        tif2mrc ${tif_file_root}${file_number}.tif ${mrc_file_root}${file_number}.mrc
+        tif2mrc ${tif_filename} ${mrc_file_root}${file_number}.mrc
         clip unpack ${mrc_file_root}${file_number}.mrc ${gain_reference} ${mrc_file_root}${file_number}_nstack.mrc
 
 
@@ -73,6 +74,7 @@ eof
     # Moving out files to get some space. 
     rm -f ${mrc_file_root}${file_number}.mrc
     rm -f ${mrc_file_root}${file_number}_nstack.mrc
+    cp ${mrc_file_root}${file_number}_sumavg_DW.mrc ${mrc_file_root}sumavg_${file_number}.mrc &
     mv ${tif_filename} /data02/plchiu/Jy-CF1F0/cryo-061517/ &
     mv ${mrc_file_root}${file_number}_spect* /data02/plchiu/Jy-CF1F0/cryo-061517/ &
     mv ${mrc_file_root}${file_number}_sumavg_Stk.mrc /data02/plchiu/Jy-CF1F0/cryo-061517/ &
