@@ -4,11 +4,12 @@
 #               2017.06.05 - Make the file moving to run in the background.  
 #
 
+
 tif_file_root="../Hila_PS1/PS1/PS1_"
 mrc_file_root="cf1f0_"
 gain_reference="gain_reference.mrc"
 start_number=1
-end_number=3000
+end_number=500
 super_pixel_size=0.525
 frame_dose=1.451247
 
@@ -33,7 +34,8 @@ eof
 for i in $(seq ${start_number} ${end_number})
 do
     file_number=`printf "%04d" ${i}`
-    if [ -f ${tif_file_root}${file_number}.tif ]; then
+    tif_filename=`ls ${tif_file_root}* | grep ${tif_file_root}${file_number}`
+    if [ -f ${tif_filename} ]; then
         # Unpack the image data
         tif2mrc ${tif_file_root}${file_number}.tif ${mrc_file_root}${file_number}.mrc
         clip unpack ${mrc_file_root}${file_number}.mrc ${gain_reference} ${mrc_file_root}${file_number}_nstack.mrc
@@ -68,7 +70,10 @@ eof
 -Gpu 0 1 2 >> ${mrc_file_root}${file_number}_motioncor2log.txt
     fi
 
+    # Moving out files to get some space. 
+    rm -f ${mrc_file_root}${file_number}.mrc
     rm -f ${mrc_file_root}${file_number}_nstack.mrc
+    mv ${tif_filename} /data02/plchiu/Jy-CF1F0/cryo-061517/ &
     mv ${mrc_file_root}${file_number}_spect* /data02/plchiu/Jy-CF1F0/cryo-061517/ &
     mv ${mrc_file_root}${file_number}_sumavg_Stk.mrc /data02/plchiu/Jy-CF1F0/cryo-061517/ &
 
