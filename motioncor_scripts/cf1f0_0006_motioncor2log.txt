@@ -1,0 +1,608 @@
+
+Usage: MotionCor2 Tags
+-InMrc    
+  1. Input MRC file that stores dose fractionated stacks.
+  2. It can be a MRC file containing a single stack collected
+     in Leginon or multiple stacks collected in UcsfTomo.
+  3. It can also be the path of a folder containing multiple
+     MRC files when -Serial option is turned on.
+
+-InTiff   
+  1. Input TIFF file that stores a dose fractionated stack.
+-OutMrc   
+  1. Output MRC file that stores the frame sum.
+  2. It can be either a MRC file name or the prefix of a series
+     MRC files when -Serial option is turned on.
+
+-ArcDir   
+ 1. Path of the archive folder that holds the archived raw
+    stacks with each pixel packed into 4 bits.
+ 2. The archived stacks are saved in MRC file with the gain
+    reference saved in the extended header.
+ 3. The rotated and/or flipped gain reference will be saved
+    if -RotGain and or -FlipGain are enabled.
+
+-Serial   
+  1. Serial-processing all MRC files in a given folder whose
+     name should be specified following -InMrc.
+  2. The output MRC file name emplate should be provided
+     folllowing -OutMrc
+  3. 1 - serial processing, 0 - single processing, default.
+  4. This option is only for single-particle stack files.
+
+-Gain     
+   MRC file that stores the gain reference. If not
+   specified, MRC extended header will be visited
+   to look for gain reference.
+
+-TmpFile  
+   Temporary image file for debugging.
+
+-LogFile  
+   Log file storing alignment data.
+
+-Patch    
+   Number of patches to be used for patch based
+   alignment, default 0 0 corresponding full frame
+   alignment.
+
+-MaskCent 
+   Center of subarea that will be used for alignement,
+   default 0 0 corresponding to the frame center.
+
+-MaskSize 
+   The size of subarea that will be used for alignment,
+   default 1.0 1.0 corresponding full size.
+
+-Iter     
+   Maximum iterations for iterative alignment,
+   default 5 iterations.
+
+-Tol      
+   Tolerance for iterative alignment,
+   default 0.5 pixel.
+
+-Bft      
+   B-Factor for alignment, default 100.
+
+-StackZ   
+   Number of frames per stack. If not specified,
+   it will be loaded from MRC header.
+
+-FtBin    
+   Binning performed in Fourier space, default 1.0.
+
+-InitDose 
+   Initial dose received before stack is acquired
+
+-FmDose   
+   Frame dose in e/A^2. If not specified, dose
+   weighting will be skipped.
+
+-PixSize  
+   Pixel size in A of input stack in angstrom. If not
+   specified, dose weighting will be skipped.
+
+-kV       
+   High tension in kV needed for dose weighting.
+   Default is 300.
+
+-Align    
+   Generate aligned sum (1) or simple sum (0)
+
+-Throw    
+   Throw initial number of frames, default is 0
+
+-Trunc    
+   Truncate last number of frames, default is 0
+
+-Group    
+   Group every specified number of frames by adding
+   them together. The alignment is then performed
+   on the summed frames. By default, no grouping
+   is performed.
+
+-Crop     
+   1. Crop the loaded frames to the given size.
+   2. By default the original size is loaded.
+
+-FmRef    
+   Specify which frame to be the reference to which
+   all other frames are aligned. By default (-1) the
+   the central frame is chosen. The central frame is
+   at N/2 based upon zero indexing where N is the
+   number of frames that will be summed, i.e., not
+   including the frames thrown away.
+
+-Tilt     
+   Specify the starting angle and the step angle of tilt
+   series. They are required for dose weighting. If not
+   given, dose weighting will be disabled.
+
+-RotGain  
+   Rotate gain reference counter-clockwise.
+   0 - no rotation, default,
+   1 - rotate 90 degree,
+   2 - rotate 180 degree,
+   3 - rotate 270 degree.
+
+-FlipGain 
+   Flip gain reference after gain rotation.
+   0 - no flipping, default,
+   1 - flip upside down, 
+   2 - flip left right.
+
+-Mag      
+   1. Correct anisotropic magnification by stretching
+      image along the major axis, the axis where the
+      lower magificantion is detected.
+   2. Three inputs are needed including magnifications
+      along major and minor axes and the angle of the
+      major axis relative to the image x-axis in degree.
+   3. By default no correction is performed.
+
+-Gpu      
+   GPU IDs. Default 0.
+   For multiple GPUs, separate IDs by space.
+   For example, -Gpu 0 1 2 3 specifies 4 GPUs.
+
+
+MotionCor2: Build Nov. 14, 2016
+
+-InMrc      cf1f0_0006_nstack.mrc
+-InTiff     
+-InSuffix   
+-OutMrc     cf1f0_0006_sumavg.mrc
+-ArcDir     
+-Gain       
+-TmpFile    
+-LogFile    
+-Serial     0
+-MaskCent   0.000000  0.000000
+-MaskSize   1.000000  1.000000
+-Patch      5  5
+-Iter       10
+-Tol        0.500000
+-Bft        100.000000
+-StackZ     0
+-FtBin      1.500000
+-InitDose   0.000000
+-FmDose     1.451247
+-PixSize    0.525000
+-kV         300
+-Throw      0
+-Trunc      0
+-Group      1
+-FmRef      -1
+-OutStack   1
+-RotGain    0
+-FlipGain   0
+-Align      1
+-Tilt       0.000000  0.000000
+-Mag        1.030000  1.000000  129.600006
+-Crop       0  0
+-Gpu        0  1  2
+
+GPU 0 memory: 11172 MB
+GPU 1 memory: 11172 MB
+GPU 2 memory: 8105 MB
+
+mCheckGPUs: GPU 0 & 2,
+    peer access is not supported between these two devices.
+
+mCheckGPUs: GPU 2 & 0,
+    peer access is not supported between these two devices.
+
+CLoadGain: load gain reference from header.
+Info: invalid gain reference from header.
+   Image size is 7676 x 7420, gain bytes must be 227823680, mismatching header gain bytes 0.
+
+Gain has not been found.
+
+Stack size: 7676  7420  50
+Stack mode: 0
+Stack 0001 has been loaded, 0 stacks left.
+
+
+Align thread has been started.
+
+Gain ref not found.
+Convert stack mode to float only.
+Apply gain reference to stack ......
+....... Apply gain to frame    1 to   17
+....... Apply gain to frame   18 to   34
+....... Apply gain to frame   35 to   50
+
+
+
+
+Apply gain reference: done.
+
+
+Start to detect bad and hot pixels.
+Sum frame    1 to   17 on GPU  0
+Sum frame   18 to   34 on GPU  1
+Sum frame   35 to   50 on GPU  2
+
+Detect bad pixel patches of partition 1 on GPU 0
+Detect bad pixel patches of partition 2 on GPU 1
+Detect bad pixel patches of partition 3 on GPU 2
+
+Calculate statistics.
+CC Mean Std: 1.375e-01  1.019e-01
+Number of defect patches: 74
+CC: >= 0.749
+
+Label defects in pre-correction image.
+Min Max Mean Std:    3521.00  9595.00  6575.03     56.18
+Num Hot pixels:      1809
+Hot pixel threshold: 6912.13 
+
+Start to correct bad and hot pixels.
+....... correct bad pixels of frames    1 to   17
+....... correct bad pixels of frames   18 to   34
+....... correct bad pixels of frames   35 to   50
+
+Patch based alignment
+Fourier transform of entire stack, please wait.
+Fourier transform entire stack, done.
+
+Full-frame alignment has been started.
+Iteration ( 1) Error 39.114292
+Iteration ( 2) Error 23.469492
+Iteration ( 3) Error 10.436636
+Iteration ( 4) Error 2.805697
+Iteration ( 5) Error 0.766690
+Iteration ( 6) Error 0.262804
+Total Iterations: 6  Error: 0.262804
+
+Full-frame alignment shift
+...... Frame (  1) shift:     0.00      0.00
+...... Frame (  2) shift:     2.52      0.41
+...... Frame (  3) shift:     4.42      1.32
+...... Frame (  4) shift:     6.73      1.37
+...... Frame (  5) shift:     9.42      0.98
+...... Frame (  6) shift:    11.89      0.79
+...... Frame (  7) shift:    13.78      0.15
+...... Frame (  8) shift:    15.79      0.04
+...... Frame (  9) shift:    17.80     -0.56
+...... Frame ( 10) shift:    20.40     -1.39
+...... Frame ( 11) shift:    22.72     -2.32
+...... Frame ( 12) shift:    24.04     -2.66
+...... Frame ( 13) shift:    26.00     -2.97
+...... Frame ( 14) shift:    27.55     -3.62
+...... Frame ( 15) shift:    29.08     -3.39
+...... Frame ( 16) shift:    31.00     -4.07
+...... Frame ( 17) shift:    32.64     -5.15
+...... Frame ( 18) shift:    33.66     -5.99
+...... Frame ( 19) shift:    35.52     -5.32
+...... Frame ( 20) shift:    36.96     -6.05
+...... Frame ( 21) shift:    38.21     -6.32
+...... Frame ( 22) shift:    40.04     -6.45
+...... Frame ( 23) shift:    41.71     -7.20
+...... Frame ( 24) shift:    42.11     -7.34
+...... Frame ( 25) shift:    43.93     -7.36
+...... Frame ( 26) shift:    44.67     -8.53
+...... Frame ( 27) shift:    45.92     -8.81
+...... Frame ( 28) shift:    47.40     -8.58
+...... Frame ( 29) shift:    48.35     -9.13
+...... Frame ( 30) shift:    48.88     -9.40
+...... Frame ( 31) shift:    50.33     -9.71
+...... Frame ( 32) shift:    51.66     -9.80
+...... Frame ( 33) shift:    52.73    -10.26
+...... Frame ( 34) shift:    54.16    -11.12
+...... Frame ( 35) shift:    55.13    -11.18
+...... Frame ( 36) shift:    55.95    -11.50
+...... Frame ( 37) shift:    56.44    -11.46
+...... Frame ( 38) shift:    57.16    -10.88
+...... Frame ( 39) shift:    58.73    -11.22
+...... Frame ( 40) shift:    59.38    -11.57
+...... Frame ( 41) shift:    60.49    -11.63
+...... Frame ( 42) shift:    60.79    -11.87
+...... Frame ( 43) shift:    62.76    -12.01
+...... Frame ( 44) shift:    63.50    -12.23
+...... Frame ( 45) shift:    63.66    -11.60
+...... Frame ( 46) shift:    63.99    -12.62
+...... Frame ( 47) shift:    65.87    -11.78
+...... Frame ( 48) shift:    66.62    -12.56
+...... Frame ( 49) shift:    66.65    -12.66
+...... Frame ( 50) shift:    69.38    -12.78
+
+Full-frame shifts have been corrected.
+Start to align patches.
+
+Align patch 1, 24 left
+
+Align patch 2, 23 left
+
+Align patch 3, 22 left
+Iteration ( 1) Error 5.906021
+Iteration ( 1) Error 5.509067
+Iteration ( 1) Error 3.598750
+Iteration ( 2) Error 3.196516
+Iteration ( 2) Error 1.083073
+Iteration ( 2) Error 1.756947
+Iteration ( 3) Error 1.369995
+Iteration ( 3) Error 1.418247
+Iteration ( 3) Error 0.874039
+Iteration ( 4) Error 0.416857
+Total Iterations: 4  Error: 0.416857
+
+
+Align patch 4, 21 left
+Iteration ( 4) Error 0.502249
+Iteration ( 4) Error 0.487372
+Total Iterations: 4  Error: 0.487372
+
+
+Align patch 5, 20 left
+Iteration ( 5) Error 0.280347
+Total Iterations: 5  Error: 0.280347
+
+
+Align patch 6, 19 left
+Iteration ( 1) Error 7.578670
+Iteration ( 2) Error 3.893914
+Iteration ( 1) Error 3.874793
+Iteration ( 1) Error 5.208225
+Iteration ( 3) Error 1.169222
+Iteration ( 2) Error 1.185671
+Iteration ( 2) Error 3.331823
+Iteration ( 4) Error 0.724237
+Iteration ( 3) Error 0.613560
+Iteration ( 3) Error 1.117116
+Iteration ( 5) Error 0.868858
+Iteration ( 4) Error 0.225476
+Total Iterations: 4  Error: 0.225476
+
+
+Align patch 7, 18 left
+Iteration ( 4) Error 1.031217
+Iteration ( 6) Error 0.730046
+Iteration ( 5) Error 0.900769
+Iteration ( 7) Error 0.777913
+Iteration ( 6) Error 0.928444
+Iteration ( 8) Error 0.605161
+Iteration ( 7) Error 0.635468
+Iteration ( 9) Error 0.522877
+Iteration ( 1) Error 4.874168
+Iteration ( 8) Error 0.648148
+Iteration (10) Error 0.386696
+Total Iterations: 10  Error: 0.386696
+
+
+Align patch 8, 17 left
+Iteration ( 2) Error 1.506692
+Iteration ( 9) Error 0.410713
+Total Iterations: 9  Error: 0.410713
+
+
+Align patch 9, 16 left
+Iteration ( 3) Error 1.216783
+Iteration ( 4) Error 1.253904
+Iteration ( 5) Error 0.872521
+Iteration ( 6) Error 0.789294
+Iteration ( 1) Error 4.329736
+Iteration ( 1) Error 10.129670
+Iteration ( 2) Error 3.163008
+Iteration ( 7) Error 0.430254
+Total Iterations: 7  Error: 0.430254
+
+
+Align patch 10, 15 left
+Iteration ( 2) Error 6.476252
+Iteration ( 3) Error 0.940835
+Iteration ( 3) Error 4.234027
+Iteration ( 4) Error 0.405900
+Total Iterations: 4  Error: 0.405900
+
+
+Align patch 11, 14 left
+Iteration ( 4) Error 4.193069
+Iteration ( 5) Error 3.928142
+Iteration ( 1) Error 14.580918
+Iteration ( 6) Error 1.168608
+Iteration ( 2) Error 18.269169
+Iteration ( 7) Error 0.622853
+Iteration ( 3) Error 17.797058
+Iteration ( 1) Error 3.605754
+Iteration ( 8) Error 0.491347
+Total Iterations: 8  Error: 0.491347
+
+
+Align patch 12, 13 left
+Iteration ( 4) Error 18.582476
+Iteration ( 2) Error 1.581596
+Iteration ( 5) Error 18.265675
+Iteration ( 3) Error 0.499805
+Total Iterations: 3  Error: 0.499805
+
+
+Align patch 13, 12 left
+Iteration ( 6) Error 18.381371
+Iteration ( 7) Error 18.119612
+Iteration ( 8) Error 18.121334
+Iteration ( 1) Error 8.707398
+Iteration ( 9) Error 17.968264
+Iteration ( 2) Error 9.319510
+Iteration ( 1) Error 4.952894
+Iteration (10) Error 17.996073
+Total Iterations: 10  Error: 17.996073
+
+**** Repeat patch 10 alignment with bigger size
+
+Align patch 10, 15 left
+Iteration ( 3) Error 7.609796
+Iteration ( 2) Error 1.742378
+Iteration ( 4) Error 7.039550
+Iteration ( 3) Error 0.601802
+Iteration ( 5) Error 7.011658
+Iteration ( 4) Error 0.639975
+Iteration ( 6) Error 6.739071
+Iteration ( 5) Error 0.280144
+Total Iterations: 5  Error: 0.280144
+
+
+Align patch 14, 11 left
+Iteration ( 7) Error 6.786657
+Iteration ( 8) Error 6.619332
+Iteration ( 9) Error 6.656750
+Iteration (10) Error 6.532276
+Total Iterations: 10  Error: 6.532276
+
+**** Repeat patch 12 alignment with bigger size
+
+Align patch 12, 13 left
+Iteration ( 1) Error 3.555817
+Iteration ( 1) Error 13.216408
+Iteration ( 2) Error 0.289972
+Total Iterations: 2  Error: 0.289972
+
+
+Align patch 15, 10 left
+Iteration ( 2) Error 15.039144
+Iteration ( 3) Error 16.147341
+Iteration ( 4) Error 15.847526
+Iteration ( 5) Error 12.170099
+Iteration ( 1) Error 3.956482
+Iteration ( 6) Error 11.863622
+Iteration ( 2) Error 1.948976
+Iteration ( 7) Error 12.247367
+Iteration ( 3) Error 0.424609
+Total Iterations: 3  Error: 0.424609
+
+
+Align patch 16, 9 left
+Iteration ( 8) Error 12.274781
+Iteration ( 1) Error 2.579671
+Iteration ( 9) Error 12.424931
+Iteration ( 2) Error 0.336141
+Total Iterations: 2  Error: 0.336141
+
+
+Align patch 17, 8 left
+Iteration (10) Error 12.489658
+Total Iterations: 10  Error: 12.489658
+
+**** Repeat patch 14 alignment with bigger size
+
+Align patch 14, 11 left
+Iteration ( 1) Error 3.788009
+Iteration ( 2) Error 1.550118
+Iteration ( 3) Error 0.597692
+Iteration ( 4) Error 0.513073
+Iteration ( 1) Error 4.374608
+Iteration ( 5) Error 0.155057
+Total Iterations: 5  Error: 0.155057
+
+
+Align patch 18, 7 left
+Iteration ( 2) Error 1.065082
+Iteration ( 3) Error 0.325360
+Total Iterations: 3  Error: 0.325360
+
+
+Align patch 19, 6 left
+Iteration ( 1) Error 3.982406
+Iteration ( 2) Error 0.230938
+Total Iterations: 2  Error: 0.230938
+
+
+Align patch 20, 5 left
+Iteration ( 1) Error 4.336205
+Iteration ( 2) Error 2.384619
+Iteration ( 3) Error 0.606684
+Iteration ( 1) Error 6.414001
+Iteration ( 4) Error 0.441381
+Total Iterations: 4  Error: 0.441381
+
+
+Align patch 21, 4 left
+Iteration ( 2) Error 3.019552
+Iteration ( 1) Error 6.960686
+Iteration ( 3) Error 1.157453
+Iteration ( 2) Error 5.575550
+Iteration ( 4) Error 0.965123
+Iteration ( 3) Error 4.341151
+Iteration ( 1) Error 9.368626
+Iteration ( 4) Error 5.075925
+Iteration ( 5) Error 0.328738
+Total Iterations: 5  Error: 0.328738
+
+
+Align patch 22, 3 left
+Iteration ( 2) Error 1.568715
+Iteration ( 5) Error 1.222879
+Iteration ( 3) Error 1.090530
+Iteration ( 6) Error 1.067507
+Iteration ( 4) Error 0.813393
+Iteration ( 7) Error 0.617870
+Iteration ( 5) Error 0.839027
+Iteration ( 6) Error 0.667787
+Iteration ( 1) Error 5.997331
+Iteration ( 8) Error 0.450860
+Total Iterations: 8  Error: 0.450860
+
+
+Align patch 23, 2 left
+Iteration ( 2) Error 3.271959
+Iteration ( 7) Error 0.543395
+Iteration ( 3) Error 1.431116
+Iteration ( 8) Error 0.457774
+Total Iterations: 8  Error: 0.457774
+
+
+Align patch 24, 1 left
+Iteration ( 4) Error 1.440963
+Iteration ( 5) Error 0.940914
+Iteration ( 1) Error 71.055824
+Iteration ( 6) Error 0.830984
+Iteration ( 2) Error 62.571331
+Iteration ( 7) Error 0.717089
+Iteration ( 3) Error 6.831319
+Iteration ( 1) Error 4.083536
+Iteration ( 2) Error 3.467801
+Iteration ( 8) Error 0.567607
+Iteration ( 4) Error 5.881409
+Iteration ( 3) Error 0.938658
+Iteration ( 9) Error 0.525420
+Iteration ( 5) Error 4.629590
+Iteration ( 4) Error 0.432817
+Total Iterations: 4  Error: 0.432817
+
+
+Align patch 25, 0 left
+Iteration (10) Error 0.398730
+Total Iterations: 10  Error: 0.398730
+
+Iteration ( 6) Error 16.007450
+Iteration ( 7) Error 2.999022
+Iteration ( 8) Error 2.048150
+Iteration ( 9) Error 1.024606
+Iteration (10) Error 0.843752
+Total Iterations: 10  Error: 0.843752
+
+**** Repeat patch 23 alignment with bigger size
+
+Align patch 23, 2 left
+Iteration ( 1) Error 8.951569
+Iteration ( 2) Error 1.882659
+Iteration ( 3) Error 0.989539
+Iteration ( 4) Error 0.800802
+Iteration ( 5) Error 0.608509
+Iteration ( 6) Error 0.423041
+Total Iterations: 6  Error: 0.423041
+
+Iteration ( 1) Error 2.102641
+Iteration ( 2) Error 0.234256
+Total Iterations: 2  Error: 0.234256
+
+3D Fitting completed.
+
+Correct local motion, please wait.
+Local motion has been corrected.
+
+Process thread exits.
+
+Computational time: 131.561081 sec
+Total time: 139.409012 sec
