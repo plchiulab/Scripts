@@ -13,8 +13,11 @@ end_number=100
 super_pixel_size=0.525
 frame_dose=1.451247
 
+#################### Advanced Internals #####################
+error_rate_threshold=2.0
 
-#################### Main #####################
+
+#################### Functions #####################
 function get_magdist_params {
 python - << eof
 with open('$1', 'r') as f:
@@ -31,6 +34,20 @@ print "%f %f %f" % (major_axis, minor_axis, dist_angle)
 eof
 }
 
+function get_global_error_rate {
+python - << eof
+with open('$1', 'r') as f:
+    for i, line in enumerate(f):
+        if "Full-frame alignment shift" in line:
+            start = i - 2
+
+error_rate = float(open('$1', 'r').readlines()[start].split(':')[2]) 
+
+print "%f" % error_rate
+eof
+}
+
+#################### Main #####################
 for i in $(seq ${start_number} ${end_number})
 do
     file_number=`printf "%04d" ${i}`
@@ -68,7 +85,10 @@ eof
 -Patch 5 5 \
 -Gpu 0 1 2 >> ${mrc_file_root}${file_number}_motioncor2log.txt
 
-        /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
+        # Check the quality of the alignment. 
+        error_rate=$(get_global_error_rate "${mrc_file_root}${file_number}_motioncor2log.txt")
+        if (( $(echo "$error_rate_threshold > $error_rate" | bc -l) )); then
+            /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
 -OutMrc ${mrc_file_root}sumavg_less_${file_number}.mrc \
 -Iter 10 \
 -Tol 0.5 \
@@ -80,7 +100,12 @@ eof
 -Throw 2 \
 -Trunc 30 \
 -Patch 5 5 \
--Gpu 0 1 2 >> ${mrc_file_root}${file_number}_motioncor2log.txt
+-Gpu 0 1 2
+        else
+            rm -f ${mrc_file_root}sumavg_full_${file_number}*
+            echo "The image of ${file_number} has a large alignment error rate. "
+        fi
+
     fi
     
     # Moving out files to get some space. 
