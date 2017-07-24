@@ -53,11 +53,10 @@ eof
 
         file_magdist="${mrc_file_root}${file_number}_magdist.txt"
 
-
         # Motion correction
         echo "Motion correction on ${mrc_file_root}${file_number}. "
         /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
--OutMrc ${mrc_file_root}${file_number}_sumavg.mrc \
+-OutMrc ${mrc_file_root}sumavg_full_${file_number}.mrc \
 -OutStack 1 \
 -Iter 10 \
 -Tol 0.5 \
@@ -68,16 +67,25 @@ eof
 -FmDose ${frame_dose} \
 -Patch 5 5 \
 -Gpu 0 1 2 >> ${mrc_file_root}${file_number}_motioncor2log.txt
-    fi
 
+        /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
+-OutMrc ${mrc_file_root}sumavg_less_${file_number}.mrc \
+-Iter 10 \
+-Tol 0.5 \
+-FtBin 1.5 \
+-Mag $(get_magdist_params "${file_magdist}") \
+-Kv 300 \
+-PixSize ${super_pixel_size} \
+-FmDose ${frame_dose} \
+-Throw 2 \
+-Trunc 30 \
+-Patch 5 5 \
+-Gpu 0 1 2 >> ${mrc_file_root}${file_number}_motioncor2log.txt
+    fi
+    
     # Moving out files to get some space. 
     rm -f ${mrc_file_root}${file_number}.mrc
     rm -f ${mrc_file_root}${file_number}_nstack.mrc
-    cp ${mrc_file_root}${file_number}_sumavg_DW.mrc ${mrc_file_root}sumavg_${file_number}.mrc &
-    mv ${tif_filename} /data02/plchiu/Jy-CF1F0/cryo-061517/ &
-    mv ${mrc_file_root}${file_number}_spect* /data02/plchiu/Jy-CF1F0/cryo-061517/ &
-    mv ${mrc_file_root}${file_number}_sumavg_Stk.mrc /data02/plchiu/Jy-CF1F0/cryo-061517/ &
-
 done
 
 echo "Done."
