@@ -4,6 +4,12 @@
 #     newstack -rot -270 gatanRef.mrc gatanRef_rot-270.mrc
 #     clip flipy gatanRef_rot-270.mrc  gatanRef_rot-270_flipy.mrc
 #
+# For packed and unpacked tiffs:
+#   Packed frames -
+#     clip unpack packed_frames.mrc gain_ref.mrc norm_frames.mrc
+#   Unpacked frames (working in the mode 2) - 
+#     clip mult -m 2 packed_frames.mrc gain_ref.mrc norm_frames.mrc
+#
 # Po-Lin Chiu   2017.05.19 - Created.
 #               2017.06.05 - Make the file moving to run in the background.  
 #               2017.07.24 - Not perform the correction with error rate larger 
