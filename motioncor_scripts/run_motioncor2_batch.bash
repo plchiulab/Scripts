@@ -1,15 +1,22 @@
 #!/bin/bash
 #
+# Gain reference transformation: 
+#     newstack -rot -270 gatanRef.mrc gatanRef_rot-270.mrc
+#     clip flipy gatanRef_rot-270.mrc  gatanRef_rot-270_flipy.mrc
+#
 # Po-Lin Chiu   2017.05.19 - Created.
 #               2017.06.05 - Make the file moving to run in the background.  
+#               2017.07.24 - Not perform the correction with error rate larger 
+#                            than 2.0. 
+#
 #
 
 
-tif_file_root="../tifstack/CF1F0_"
-mrc_file_root="cf1f0_"
-gain_reference="gain_reference.mrc"
-start_number=10
-end_number=100
+tif_file_root="tifstack2/CF1F0_"
+mrc_file_root="micg_corr/cf1f0_"
+gain_reference="tifstack2/gain_reference.mrc"
+start_number=3001
+end_number=6097
 super_pixel_size=0.525
 frame_dose=1.451247
 
