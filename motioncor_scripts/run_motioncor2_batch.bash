@@ -98,30 +98,30 @@ eof
 -PixSize ${super_pixel_size} \
 -FmDose ${frame_dose} \
 -Patch 5 5 \
--Gpu 0 1 2
+-Gpu 0 1 2 >> ${mrc_file_root}${file_number}_motioncor2log.txt
 
         # Check the quality of the alignment. 
-        error_rate=$(get_global_error_rate "${mrc_file_root}${file_number}_motioncor2log.txt")
-        if (( $(echo "$error_rate_threshold > $error_rate" | bc -l) )); then
-            /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
--OutMrc ${mrc_file_root}sumavg_less_${file_number}.mrc \
--Iter 10 \
--Tol 0.5 \
--FtBin 1.5 \
--Mag $(get_magdist_params "${file_magdist}") \
--Kv 300 \
--PixSize ${super_pixel_size} \
--FmDose ${frame_dose} \
--Throw 2 \
--Trunc 10 \
--Patch 5 5 \
--Gpu 0 1 2
-        else
-            # rm -f ${mrc_file_root}sumavg_full_${file_number}*
-            echo "The image of ${file_number} has a large alignment error rate. "
-        fi
-
-    fi
+#        error_rate=$(get_global_error_rate "${mrc_file_root}${file_number}_motioncor2log.txt")
+#        if (( $(echo "$error_rate_threshold > $error_rate" | bc -l) )); then
+#            /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
+#-OutMrc ${mrc_file_root}sumavg_less_${file_number}.mrc \
+#-Iter 10 \
+#-Tol 0.5 \
+#-FtBin 1.5 \
+#-Mag $(get_magdist_params "${file_magdist}") \
+#-Kv 300 \
+#-PixSize ${super_pixel_size} \
+#-FmDose ${frame_dose} \
+#-Throw 2 \
+#-Trunc 10 \
+#-Patch 5 5 \
+#-Gpu 0 1 2
+#        else
+#            # rm -f ${mrc_file_root}sumavg_full_${file_number}*
+#            echo "The image of ${file_number} has a large alignment error rate. "
+#        fi
+#
+#    fi
     
     # Moving out files to get some space. 
     rm -f ${mrc_file_root}${file_number}.mrc
