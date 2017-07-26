@@ -116,7 +116,7 @@ eof
 -Patch 5 5 \
 -Gpu 0 1 2
         else
-            rm -f ${mrc_file_root}sumavg_full_${file_number}*
+            # rm -f ${mrc_file_root}sumavg_full_${file_number}*
             echo "The image of ${file_number} has a large alignment error rate. "
         fi
 
