@@ -89,6 +89,7 @@ eof
         /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
 -OutMrc ${mrc_file_root}sumavg_full_${file_number}.mrc \
 -OutStack 1 \
+-LogFile ${mrc_file_root}${file_number}_motioncor2log.txt \
 -Iter 10 \
 -Tol 0.5 \
 -FtBin 1.5 \
@@ -97,7 +98,7 @@ eof
 -PixSize ${super_pixel_size} \
 -FmDose ${frame_dose} \
 -Patch 5 5 \
--Gpu 0 1 2 >> ${mrc_file_root}${file_number}_motioncor2log.txt
+-Gpu 0 1 2
 
         # Check the quality of the alignment. 
         error_rate=$(get_global_error_rate "${mrc_file_root}${file_number}_motioncor2log.txt")
