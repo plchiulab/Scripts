@@ -113,7 +113,7 @@ eof
 -PixSize ${super_pixel_size} \
 -FmDose ${frame_dose} \
 -Throw 2 \
--Trunc 30 \
+-Trunc 10 \
 -Patch 5 5 \
 -Gpu 0 1 2
         else
