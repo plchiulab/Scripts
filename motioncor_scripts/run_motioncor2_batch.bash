@@ -30,6 +30,7 @@ frame_dose=1.451247
 error_rate_threshold=2.0
 
 
+
 #################### Functions #####################
 function get_magdist_params {
 python - << eof
@@ -124,6 +125,8 @@ eof
     # Moving out files to get some space. 
     rm -f ${mrc_file_root}${file_number}.mrc
     rm -f ${mrc_file_root}${file_number}_nstack.mrc
+    echo "========================================================="
+
 done
 
 echo "Done."
