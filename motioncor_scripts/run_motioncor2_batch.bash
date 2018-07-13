@@ -1,19 +1,19 @@
 #!/bin/bash
 #
-# Gain reference transformation: 
+# Gain reference transformation:
 #     newstack -rot -270 gatanRef.mrc gatanRef_rot-270.mrc
 #     clip flipy gatanRef_rot-270.mrc  gatanRef_rot-270_flipy.mrc
 #
 # For packed and unpacked tiffs:
 #   Packed frames -
 #     clip unpack packed_frames.mrc gain_ref.mrc norm_frames.mrc
-#   Unpacked frames (working in the mode 2) - 
+#   Unpacked frames (working in the mode 2) -
 #     clip mult -m 2 packed_frames.mrc gain_ref.mrc norm_frames.mrc
 #
 # Po-Lin Chiu   2017.05.19 - Created.
-#               2017.06.05 - Make the file moving to run in the background.  
-#               2017.07.24 - Not perform the correction with error rate larger 
-#                            than 2.0. 
+#               2017.06.05 - Make the file moving to run in the background.
+#               2017.07.24 - Not perform the correction with error rate larger
+#                            than 2.0.
 #
 #
 
@@ -26,9 +26,9 @@ end_number=6097
 super_pixel_size=0.525
 frame_dose=1.451247
 
+
 #################### Advanced Internals #####################
 error_rate_threshold=2.0
-
 
 
 #################### Functions #####################
@@ -42,7 +42,7 @@ with open('$1', 'r') as f:
 text = open('$1', 'r').readlines()
 dist_angle = float(text[start+2].split('=')[1])
 major_axis = float(text[start+3].split('=')[1])
-minor_axis = float(text[start+4].split('=')[1])  
+minor_axis = float(text[start+4].split('=')[1])
 
 print "%f %f %f" % (major_axis, minor_axis, dist_angle)
 eof
@@ -55,7 +55,7 @@ with open('$1', 'r') as f:
         if "Full-frame alignment shift" in line:
             start = i - 2
 
-error_rate = float(open('$1', 'r').readlines()[start].split(':')[2]) 
+error_rate = float(open('$1', 'r').readlines()[start].split(':')[2])
 
 print "%f" % error_rate
 eof
@@ -70,7 +70,6 @@ do
         # Unpack the image data
         tif2mrc ${tif_filename} ${mrc_file_root}${file_number}.mrc
         clip unpack ${mrc_file_root}${file_number}.mrc ${gain_reference} ${mrc_file_root}${file_number}_nstack.mrc
-
 
         # Correct magnification distortion
         /opt/mag_distort_estimate/1.0.1/bin/mag_distortion_estimate_openmp_1_12_16.exe >> ${mrc_file_root}${file_number}_magdist.txt << eof
@@ -87,20 +86,19 @@ eof
         # Motion correction
         echo "Motion correction on ${mrc_file_root}${file_number}. "
         /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
--OutMrc ${mrc_file_root}sumavg_full_${file_number}.mrc \
--OutStack 1 \
--LogFile ${mrc_file_root}${file_number}_motioncor2log.txt \
+-OutMrc ${mrc_file_root}sumavg_${file_number}.mrc \
 -Iter 10 \
 -Tol 0.5 \
+-Throw 2 \
 -FtBin 1.5 \
 -Mag $(get_magdist_params "${file_magdist}") \
 -Kv 300 \
 -PixSize ${super_pixel_size} \
 -FmDose ${frame_dose} \
 -Patch 5 5 \
--Gpu 0 1 2 >> ${mrc_file_root}${file_number}_motioncor2log.txt
+-Gpu 0 1 2 3 >> ${mrc_file_root}${file_number}_motioncor2log.txt
 
-        # Check the quality of the alignment. 
+        # Check the quality of the alignment.
 #        error_rate=$(get_global_error_rate "${mrc_file_root}${file_number}_motioncor2log.txt")
 #        if (( $(echo "$error_rate_threshold > $error_rate" | bc -l) )); then
 #            /opt/motioncor2/MotionCor2-01-30-2017 -InMrc ${mrc_file_root}${file_number}_nstack.mrc \
@@ -122,8 +120,8 @@ eof
 #        fi
 #
 #    fi
-    
-    # Moving out files to get some space. 
+
+    # Moving out files to get some space.
     rm -f ${mrc_file_root}${file_number}.mrc
     rm -f ${mrc_file_root}${file_number}_nstack.mrc
     echo "========================================================="
@@ -131,5 +129,3 @@ eof
 done
 
 echo "Done."
-
-
