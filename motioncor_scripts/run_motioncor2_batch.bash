@@ -119,12 +119,13 @@ eof
 #            echo "The image of ${file_number} has a large alignment error rate. "
 #        fi
 #
-#    fi
 
-    # Moving out files to get some space.
-    rm -f ${mrc_file_root}${file_number}.mrc
-    rm -f ${mrc_file_root}${file_number}_nstack.mrc
-    echo "========================================================="
+
+        # Moving out files to get some space.
+        rm -f ${mrc_file_root}${file_number}.mrc
+        rm -f ${mrc_file_root}${file_number}_nstack.mrc
+        echo "========================================================="
+    fi
 
 done
 
